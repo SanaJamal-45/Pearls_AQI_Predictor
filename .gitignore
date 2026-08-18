@@ -1,0 +1,30 @@
+# Environment variables / secrets
+.env
+
+# Python virtual environment
+.venv/
+venv/
+.venv311/
+
+hopsworks_certs/
+hopsworks_model_staging/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Generated data
+data/processed/
+
+# Generated reports
+reports/
+
+# Trained models
+models/
+
+# OS files
+.DS_Store
+Thumbs.db
