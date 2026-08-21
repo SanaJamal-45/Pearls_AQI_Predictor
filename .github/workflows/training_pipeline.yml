@@ -1,0 +1,26 @@
+name: Daily Training Pipeline
+
+on:
+  schedule:
+    - cron: "0 2 * * *"   # once a day at 2 AM UTC
+  workflow_dispatch:
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install "hopsworks[python]" python-dotenv pandas numpy scikit-learn xgboost joblib
+
+      - name: Retrain and push to registry
+        env:
+          HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+          HOPSWORKS_PROJECT: ${{ secrets.HOPSWORKS_PROJECT }}
+        run: python src/retrain_from_hopsworks.py

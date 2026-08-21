@@ -17,7 +17,9 @@ __pycache__/
 .ipynb_checkpoints/
 
 # Generated data
-data/processed/
+data/processed/*
+!data/processed/aqi_features.csv
+!data/processed/model_ready_features.csv
 
 # Generated reports
 reports/

@@ -1,0 +1,34 @@
+name: Hourly Feature Pipeline
+
+on:
+  schedule:
+    - cron: "0 * * * *"   # every hour
+  workflow_dispatch:        # lets you trigger it manually from GitHub UI too
+
+jobs:
+  update-features:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install "hopsworks[python]" python-dotenv pandas numpy requests
+
+      - name: Fetch latest OpenWeather data
+        env:
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
+        run: python src/openweather_collector.py
+
+      - name: Build model-ready features
+        run: python src/openweather_features.py
+
+      - name: Insert into Hopsworks feature store
+        env:
+          HOPSWORKS_API_KEY: ${{ secrets.HOPSWORKS_API_KEY }}
+          HOPSWORKS_PROJECT: ${{ secrets.HOPSWORKS_PROJECT }}
+        run: python src/insert_openweather_to_hopsworks.py
