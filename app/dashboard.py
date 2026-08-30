@@ -14,7 +14,7 @@ import plotly.graph_objects as go
 import requests
 import streamlit as st
 
-API_URL = os.environ.get("AQI_API_URL", "http://localhost:8000")
+API_URL = st.secrets.get("AQI_API_URL", os.environ.get("AQI_API_URL", "http://localhost:8000"))
 TARGETS = ["AQI_t+1", "AQI_t+2", "AQI_t+3"]
 HORIZON_LABEL = {"AQI_t+1": "Tomorrow", "AQI_t+2": "In 2 days", "AQI_t+3": "In 3 days"}
 
