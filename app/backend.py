@@ -165,3 +165,160 @@ def explain_global_endpoint(
         return _json_safe(explain_global(target, sample_size))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================
+# Health Advisory
+# ============================================================
+
+ADVISORY_RULES = [
+    {
+        "max_aqi": 50,
+        "level": "Good",
+        "color": "#22c55e",
+        "icon": "\u2705",
+        "summary": "Air quality is satisfactory. Enjoy outdoor activities freely.",
+        "groups": {
+            "general": "No health risk. Enjoy outdoor activities.",
+            "children": "Safe for all outdoor play and sports.",
+            "elderly": "No precautions needed.",
+            "respiratory": "No restrictions on outdoor activities.",
+            "cardiac": "No restrictions. Air quality poses no risk.",
+        },
+        "actions": [
+            "\u2705 Open windows for natural ventilation",
+            "\u2705 Safe for all outdoor exercise",
+            "\u2705 No air purifier needed",
+        ],
+    },
+    {
+        "max_aqi": 100,
+        "level": "Moderate",
+        "color": "#eab308",
+        "icon": "\u26a0\ufe0f",
+        "summary": "Acceptable air quality. Unusually sensitive people should limit prolonged outdoor exertion.",
+        "groups": {
+            "general": "Most people face no risk. Enjoy the outdoors.",
+            "children": "Safe for outdoor play. No restrictions.",
+            "elderly": "No restrictions for most elderly people.",
+            "respiratory": "Those with asthma may notice mild symptoms. Keep medication handy.",
+            "cardiac": "No significant risk. Normal activities are fine.",
+        },
+        "actions": [
+            "\u26a0\ufe0f Unusually sensitive people should reduce prolonged outdoor exertion",
+            "\u2705 General public: no restrictions",
+            "\u2705 Ventilation is fine for most homes",
+        ],
+    },
+    {
+        "max_aqi": 150,
+        "level": "Unhealthy for Sensitive Groups",
+        "color": "#f97316",
+        "icon": "\U0001f6a8",
+        "summary": "Sensitive groups may experience health effects. General public is less likely to be affected.",
+        "groups": {
+            "general": "Most people unaffected. Monitor conditions if active outdoors.",
+            "children": "\u26a0\ufe0f Limit prolonged outdoor play. Schools should reduce outdoor recess.",
+            "elderly": "\u26a0\ufe0f Reduce outdoor exertion. Stay in filtered air when possible.",
+            "respiratory": "\U0001f6a8 Avoid prolonged outdoor activity. Use prescribed inhalers prophylactically.",
+            "cardiac": "\u26a0\ufe0f Avoid prolonged outdoor exertion. Watch for chest discomfort.",
+        },
+        "actions": [
+            "\U0001f6a8 Sensitive groups: reduce prolonged outdoor exertion",
+            "\u26a0\ufe0f Consider wearing KN95/N95 masks outdoors",
+            "\u2705 Close windows, use air purifier if available",
+            "\u2705 Children should switch to indoor activities",
+        ],
+    },
+    {
+        "max_aqi": 200,
+        "level": "Unhealthy",
+        "color": "#ef4444",
+        "icon": "\U0001f6a8",
+        "summary": "Everyone may begin to experience health effects. Sensitive groups face serious risks.",
+        "groups": {
+            "general": "\u26a0\ufe0f Reduce prolonged outdoor exertion. Take breaks indoors.",
+            "children": "\U0001f6a8 Avoid all outdoor sports and play. Keep children indoors.",
+            "elderly": "\U0001f6a8 Stay indoors. Use air conditioning or purifiers.",
+            "respiratory": "\U0001f6a8 EMERGENCY: Stay indoors. Ensure rescue medications are accessible.",
+            "cardiac": "\U0001f6a8 Avoid all outdoor exertion. Seek medical attention for symptoms.",
+        },
+        "actions": [
+            "\U0001f6a8 Everyone: avoid prolonged outdoor exertion",
+            "\U0001f6a8 Wear KN95/N95 masks if going outside",
+            "\U0001f6a8 Close all windows. Run air purifiers on high.",
+            "\U0001f6a8 Cancel outdoor events and sports",
+            "\u26a0\ufe0f Monitor symptoms: coughing, throat irritation, shortness of breath",
+        ],
+    },
+    {
+        "max_aqi": 300,
+        "level": "Very Unhealthy",
+        "color": "#9333ea",
+        "icon": "\U0001f6d1",
+        "summary": "Health alert: significant risk of health effects for everyone.",
+        "groups": {
+            "general": "\U0001f6d1 Avoid ALL outdoor activities. Stay in filtered air.",
+            "children": "\U0001f6d1 EMERGENCY: Children must stay indoors. No outdoor activities.",
+            "elderly": "\U0001f6d1 Critical risk. Stay indoors with air purification.",
+            "respiratory": "\U0001f6d1 EMERGENCY: Stay indoors. Have emergency action plan ready.",
+            "cardiac": "\U0001f6d1 EMERGENCY: Avoid all physical exertion. Call doctor if symptoms appear.",
+        },
+        "actions": [
+            "\U0001f6d1 EMERGENCY: Avoid ALL outdoor physical activity",
+            "\U0001f6d1 Wear N95 masks if outdoor exposure is unavoidable",
+            "\U0001f6d1 Run all available air purifiers continuously",
+            "\U0001f6d1 Keep windows and doors sealed",
+            "\u26a0\ufe0f Seek medical help for breathing difficulties",
+        ],
+    },
+    {
+        "max_aqi": 500,
+        "level": "Hazardous",
+        "color": "#7e0023",
+        "icon": "\u2620\ufe0f",
+        "summary": "HAZARDOUS: Emergency conditions. Entire population is affected.",
+        "groups": {
+            "general": "\u2620\ufe0f EMERGENCY: Do NOT go outside under any circumstance.",
+            "children": "\u2620\ufe0f EMERGENCY: Children are at extreme risk. Stay indoors.",
+            "elderly": "\u2620\ufe0f EMERGENCY: Extreme health risk. Evacuate if possible.",
+            "respiratory": "\u2620\ufe0f EMERGENCY: Risk of severe medical events. Seek hospital care.",
+            "cardiac": "\u2620\ufe0f EMERGENCY: Risk of heart attack/stroke. Seek immediate care.",
+        },
+        "actions": [
+            "\u2620\ufe0f EMERGENCY: Stay indoors at all times",
+            "\u2620\ufe0f Wear N95/HEPA-filtered masks if any outdoor exposure",
+            "\u2620\ufe0f Seal rooms and run air purifiers at maximum",
+            "\u2620\ufe0f Consider temporary evacuation to areas with cleaner air",
+            "\u2620\ufe0f Call emergency services for breathing difficulties",
+        ],
+    },
+]
+
+
+def _get_advisory(aqi: float) -> dict:
+    for rule in ADVISORY_RULES:
+        if aqi <= rule["max_aqi"]:
+            return rule
+    return ADVISORY_RULES[-1]
+
+
+@app.get("/health-advisory")
+def health_advisory():
+    try:
+        predictions, _ = predict_all_horizons()
+        advisories = {}
+        for target, value in predictions.items():
+            advisory = _get_advisory(float(value))
+            advisories[target] = {
+                "predicted_aqi": round(float(value), 2),
+                "level": advisory["level"],
+                "color": advisory["color"],
+                "icon": advisory["icon"],
+                "summary": advisory["summary"],
+                "groups": advisory["groups"],
+                "actions": advisory["actions"],
+            }
+        return _json_safe({"advisories": advisories})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

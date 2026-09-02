@@ -20,12 +20,13 @@ __pycache__/
 data/processed/*
 !data/processed/aqi_features.csv
 !data/processed/model_ready_features.csv
+!data/processed/splits/
 
 # Generated reports
 reports/
 
 # Trained models
-models/
+# models/  # kept in git for deployment (only 1.2MB)
 
 # OS files
 .DS_Store
