@@ -186,19 +186,42 @@ st.markdown("""
 
 @st.cache_data(ttl=60)
 def api_get(path, params=None):
-    r = requests.get(f"{API_URL}{path}", params=params, timeout=30)
+    r = requests.get(f"{API_URL}{path}", params=params, timeout=90)
     r.raise_for_status()
     return r.json()
 
 def api_post(path, body):
-    r = requests.post(f"{API_URL}{path}", json=body, timeout=30)
+    r = requests.post(f"{API_URL}{path}", json=body, timeout=90)
     r.raise_for_status()
     return r.json()
 
+# Retry logic: Render free tier cold-starts take 30-60s.
+# Try up to 3 times with increasing waits before giving up.
+def _api_get_with_retry(path, params=None, retries=3, delay=15):
+    last_exc = None
+    for i in range(retries):
+        try:
+            r = requests.get(f"{API_URL}{path}", params=params, timeout=90)
+            r.raise_for_status()
+            return r.json()
+        except Exception as e:
+            last_exc = e
+            if i < retries - 1:
+                time.sleep(delay)
+    raise last_exc
+
 try:
-    api_get("/health")
-except Exception:
-    st.error("Dashboard can't reach the backend. Make sure it's running, then refresh.")
+    _api_get_with_retry("/health")
+except Exception as e:
+    st.error(
+        f"Dashboard can't reach the backend at:\n\n"
+        f"`{API_URL}`\n\n"
+        f"Error: {e}\n\n"
+        f"**Possible fixes:**\n"
+        f"1. The Render backend may be waking up from sleep — wait 1 minute and refresh\n"
+        f"2. Check your Streamlit secret `AQI_API_URL` is correct\n"
+        f"3. Verify the backend is live at: {API_URL}/health"
+    )
     st.stop()
 
 def get_history_stats(df):
