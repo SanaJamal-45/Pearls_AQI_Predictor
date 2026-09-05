@@ -126,14 +126,14 @@ st.markdown("""
         font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
     }
     .metric-pill {
-        display: inline-flex; align-items: center; gap: 8px;
+        display: flex; align-items: center; gap: 10px; width: 100%;
         background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 10px; padding: 8px 16px; margin: 0 4px;
+        border-radius: 12px; padding: 14px 20px; box-sizing: border-box;
     }
     .metric-pill .metric-label {
-        font-size: 0.7rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.06em;
+        font-size: 0.85rem; color: #6b7280; text-transform: uppercase; letter-spacing: 0.06em;
     }
-    .metric-pill .metric-value {font-size: 0.95rem; font-weight: 700; color: #e5e7eb;}
+    .metric-pill .metric-value {font-size: 1.6rem; font-weight: 700; color: #e5e7eb;}
     .alert-banner {
         border-radius: 12px; padding: 14px 20px; margin-bottom: 16px;
         font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 10px;
