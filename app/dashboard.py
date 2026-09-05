@@ -355,9 +355,7 @@ st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
 # ============================================================
 
 st.markdown(f'<div class="section-header">{ICO["trend"]} AQI Trend</div>', unsafe_allow_html=True)
-st.markdown('<div class="section-card">', unsafe_allow_html=True)
 render_chart(hist_df)
-st.markdown('</div>', unsafe_allow_html=True)
 
 
 # ============================================================
